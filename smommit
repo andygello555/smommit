@@ -1,22 +1,49 @@
-""" smommit: the git small commit system
+#!/usr/bin/env python3
+""" Smommit: the git small commit system
 
 Usage:
-    {0} {1} [-v | --verbose] (-m <message>)
+    {0} {1} [-v | --verbose] [(-m <message>)]
+    {0} {1} [-v | --verbose] [<line> [-f | --force]]
+    {0} {1} [-v | --verbose] [-f | --force]
+    {0} {1} [-v | --verbose]
+    {0} -h | --help | --version
 Options:
+    -m --message  The smommit message (if not present then default editor will be opened)
+    -f --force    Force/Don't ask for permission
+    -v --verbose  Verbose
+    -h --help     Shows help
+    --version     Show version
+    <message>     The smommit message
+    <line>        Line number
 """
 
 from docopt import docopt
 from client import command_handler
-import sys
 
-main_exec = "forkie.py"
+main_exec = "smommit"
 commands = {
     # Add a message line to the mini commit text
     "add": command_handler.add,
     # Remove a message line from the mini commit text
     "rm": command_handler.remove,
-    # Edit the entire mini commit inside the default editor
-    "edit": command_handler.edit
+    # Edit the entire smommit inside the default editor
+    "edit": command_handler.edit,
+    # Configures options for the smommit of a particular branch
+    "config": command_handler.config
+}
+
+args_commands = {
+    'add': False, 
+    '--verbose': 0, 
+    '--message': 0, 
+    '<message>': None, 
+    'rm': False, 
+    '<line>': None, 
+    '--force': 0, 
+    'edit': False, 
+    'config': False, 
+    '--help': 0, 
+    '--version': False
 }
 
 # Program flow:
@@ -25,7 +52,8 @@ commands = {
 # 3a. If no .smommit dir exists then will create and also create edit/create .gitignore to add .smommit onto it. Also adds smommit prepare-commit-msg bash
 # 3b. If no smommit text file for current branch then creates text file to track messages
 # 3c. If smommit text file for current branch exists: then append message to the end
-# 4. If "git commit" is called then the prepare-commit-msg bash for smommit is called which adds the 
+# 4. If "git commit" is called then the prepare-commit-msg bash for smommit is called which adds all the smommits inside the smommit for that branch to the message
+#    and deletes the smommit for that branch after commit
 
 def init_docs(_doc: str) -> str:
     """ Initialises the __doc__ field to be parsed into docopts. Just formats
@@ -50,7 +78,6 @@ def remove_options(args: dict) -> dict:
         - args: the dictionary of arguments produced by docopts
         - returns: a dictionary with just the useful arguments in it
     """
-    options_flag = False
     new_args = dict()
     for arg in args.keys():
         if arg == "Options:":
@@ -71,7 +98,7 @@ def find_difference(dict1: dict, dict2: dict) -> dict:
 if __name__ == '__main__':
     arguments = docopt(init_docs(__doc__), version='DEMO 1.0')
     arguments = remove_options(arguments)
-    print(arguments)
+    # print(arguments)
     arguments = find_difference(args_commands, arguments)
     found = False
 
