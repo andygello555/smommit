@@ -1,10 +1,11 @@
 """ "Backend" stuff for smommit cli tool
 """
 from client import cli_utils, file_compare
-from os import path, getcwd, makedirs, stat, chmod
+from os import path, getcwd, makedirs, stat, chmod, devnull
 import json
 import datetime
 import git
+import subprocess
 from stat import S_IEXEC
 
 config_template = {
@@ -69,12 +70,8 @@ if os.path.exists(smommit_dir):
         os.remove(smommit_branch)
 '''
 
-def is_git_repo():
-    try:
-        _ = git.Repo(getcwd()).git_dir
-        return True
-    except git.exc.InvalidGitRepositoryError:
-        return False
+def is_git_repo(path='.'):
+    return subprocess.call(['git', '-C', path, 'status'], stderr=subprocess.STDOUT, stdout=open(devnull, 'w')) == 0
 
 def get_git_root():
     git_repo = git.Repo(getcwd(), search_parent_directories=True)
@@ -170,7 +167,7 @@ def initialiseSmommit(v: bool) -> dict:
         
         # Check for post-commit in .git/hooks
         post_commit_hook = path.join(get_git_root(), '.git', 'hooks', 'post-commit')
-        if not path.exists(commit_msg_hook) or not path.isfile(commit_msg_hook):
+        if not path.exists(post_commit_hook) or not path.isfile(post_commit_hook):
             # Create prepare-commit-msg
             if v:
                 print('post-commit hook not found in ".git/hooks". Creating...')
