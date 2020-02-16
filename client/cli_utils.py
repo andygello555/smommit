@@ -3,7 +3,6 @@ from urllib.parse import urlparse
 import requests
 import platform
 import subprocess
-import git
 
 class UndefinedSystem(Exception):
     """ Raised when the user's system is unhandled/unrecognized """
@@ -82,37 +81,3 @@ def find_hostname(url: str) -> str:
 def print_dict(args: dict):
     for arg in args.keys():
         print(str(arg) + ": " + str(args[arg]))
-
-def is_git_repo():
-    try:
-        _ = git.Repo(getcwd()).git_dir
-        return True
-    except git.exc.InvalidGitRepositoryError:
-        return False
-
-def get_git_root():
-    git_repo = git.Repo(getcwd(), search_parent_directories=True)
-    git_root = git_repo.git.rev_parse("--show-toplevel")
-    return git_root
-
-def get_smommit_folder():
-    return path.join(get_git_root(), ".smommit")
-
-def get_branch():
-    git_repo = git.Repo(getcwd(), search_parent_directories=True)
-    return git_repo.active_branch.name
-
-def check_gitignore_for(keyword: str) -> bool:
-    git_root = get_git_root()
-    gitignore = path.join(git_root, ".gitignore")
-    if not path.exists(gitignore) or not path.isfile(gitignore):
-        return False
-    else:
-        # Check file for keyword
-        gitignore_file = open(gitignore, "r")
-        gitignore_file_lines = gitignore_file.readlines()
-        gitignore_file.close()
-        for line in gitignore_file_lines:
-            if keyword in line and "#" not in line:
-                return True
-        return False

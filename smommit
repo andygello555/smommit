@@ -3,7 +3,7 @@
 
 Usage:
     {0} {1} [-v | --verbose] [(-m <message>)]
-    {0} {1} [-v | --verbose] [<line> [-f | --force]]
+    {0} {1} [-v | --verbose] [(<line> [-f | --force])]
     {0} {1} [-v | --verbose] [-f | --force]
     {0} {1} [-v | --verbose]
     {0} -h | --help | --version
@@ -19,6 +19,8 @@ Options:
 
 from docopt import docopt
 from client import command_handler
+
+__version__ = "0.1.0"
 
 main_exec = "smommit"
 commands = {
@@ -96,7 +98,7 @@ def find_difference(dict1: dict, dict2: dict) -> dict:
     return {key: dict2[key] for key in dict1.keys() if dict1[key] != dict2[key]}
 
 if __name__ == '__main__':
-    arguments = docopt(init_docs(__doc__), version='DEMO 1.0')
+    arguments = docopt(init_docs(__doc__), version=__version__)
     arguments = remove_options(arguments)
     # print(arguments)
     arguments = find_difference(args_commands, arguments)

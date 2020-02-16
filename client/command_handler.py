@@ -3,6 +3,7 @@ from client.file_compare import check_if_equal
 import os
 import time
 import datetime
+from client.small_commit import initialiseSmommit, format_message, remove_line_from_file
 
 def check_bool_option(args: dict, option: str) -> bool:
     """ Check if theres a boolean option with the given name
@@ -101,62 +102,97 @@ def add(args: dict):
     if v:
         cli_utils.print_dict(args_norm)
     
-    # Check if inside a git repo
-    if cli_utils.is_git_repo():
-        # Check if root git directory has a .smommit folder
-        smommit_root = cli_utils.get_smommit_folder()
-        if not os.path.exists(smommit_root):
-            # Create .smommit folder
-            if v:
-                print(".smommit folder not found. Creating...") 
-            os.makedirs(smommit_root)
-        
-        # Check if .gitignore contains .smommit
-        contains = cli_utils.check_gitignore_for(".smommit")
-        if not contains:
-            if cli_utils.ask_for("This will add '.smommit' to .gitignore (and create .gitignore if it doesn't exist). Do you want to continue?", ["y", "n"]):
-                # Add .smommit to gitignore
-                if v:
-                    print(".smommit is not in gitignore. Adding...")
-                gitignore = open(os.path.join(cli_utils.get_git_root(), ".gitignore"), "a+")
-                gitignore.write("\n\n# Smommit ignore\n.smommit/")
-                gitignore.close()
-            else:
-                print("Aborting...")
-                return
+    # Append message to smommit
+    if v:
+        print("Appending message to smommit...")
 
-        # Check if smommit for the current branch exists
-        branch_name = str(cli_utils.get_branch())
-        branch_root = os.path.join(smommit_root, branch_name)
-        if not os.path.exists(branch_root):
-            # Create branch folder
-            if v:
-                print("Smommit for branch doesn't exist. Creating...")
-            os.makedirs(branch_root)
-        
-        branch_smommit = os.path.join(branch_root, branch_name + ".txt")
-            
-        # Append message to smommit
-        if v:
-            print("Appending message to smommit...")
-        
-        time = datetime.datetime.now().strftime("%d/%m/%Y - %X")
-        message = ""
+    # Initialise smommit
+    paths = initialiseSmommit(v)
+    
+    if paths is not None:
+        branch_smommit = paths['branch_smommit']
         branch_smommit_file = open(branch_smommit, "a+")
         # Add newline if the message is not the first message in smommit
+        message = ''
         if os.stat(branch_smommit).st_size != 0:
             message += "\n"
-        message += str(args_norm["message"])
-        branch_smommit_file.write(message + " (" + time + ")")
+        message += format_message(paths['config'], str(args_norm['message']))
+        branch_smommit_file.write(message)
         branch_smommit_file.close()
-    else:
-        print("You are not inside a git directory. Use 'git init' or 'git clone' to create a git directory")
-        return
-    
+        print('Added "' + message.replace('\n', '') + '" to ' + paths['branch_name'] + ' smommit')
+
 def remove(args: dict):
-    # {0} {1} [-v | --verbose] [<line> [-f | --force]]
-    print(args)
-    
+    # {0} {1} [-v | --verbose] [(<line> [-f | --force])]
+    args_norm = {
+        "verbose": False,
+        "force": False,
+        "line": None
+    }
+
+    # Check if theres verbose
+    args_norm["verbose"] = check_bool_option(args, "--verbose")
+    v = args_norm["verbose"]
+    # Check if there's force
+    args_norm['force'] = check_bool_option(args, '--force')
+    try:
+        args_norm['line'] = args['<line>']
+    except KeyError:
+        if v:
+            print("Couldn't find line number")
+    # Check if line number is a number
+    if args_norm['line'] is not None:
+        try:
+            args_norm["line"] = int(args_norm["line"])
+        except ValueError:
+            print("Line number is not a number. Aborting...")
+            return
+
+    if v:
+        cli_utils.print_dict(args_norm)
+
+    # Initialise smommit
+    paths = initialiseSmommit(v)
+
+    if paths is not None:
+        branch_smommit = paths['branch_smommit']
+        with open(branch_smommit, "r") as f:
+            lines = f.readlines()
+            if args_norm['force']:
+                if args_norm['line'] <= len(lines) and args_norm['line'] - 1 >= 0:
+                    remove_line_from_file(branch_smommit, args_norm['line'], lines)
+                else:
+                    print('Line number is out of range. Aborting...')
+                    return
+            else:
+                if args_norm['line'] is not None:
+                    if args_norm['line'] <= len(lines) and args_norm['line'] - 1 >= 0:
+                        if cli_utils.ask_for('Are you sure you want to delete "' + lines[args_norm['line'] - 1].strip('\n'), ['y', 'n']):
+                            remove_line_from_file(branch_smommit, args_norm['line'], lines)
+                        else:
+                            print('Aborting...')
+                            return
+                    else:
+                        print('Line number is out of range. Aborting...')
+                        return
+                else:
+                    # Pick which line to delete
+                    print(paths['branch_name'] + ' smommit contains:')
+                    for line_no in range(len(lines)):
+                        print(str(line_no + 1) + ': ' + lines[line_no].strip('\n'))
+                    while True:
+                        try:
+                            line_no = int(input(('Which line do you want to delete?: ')))
+                            if line_no > len(lines) or line_no - 1 < 0:
+                                print('List number is out of range. Try again.')
+                            else:
+                                if cli_utils.ask_for('Are you sure?', ['y', 'n']):
+                                    break
+                        except ValueError:
+                            print('Line number is not a integer. Try again.')
+                    remove_line_from_file(branch_smommit, line_no, lines)
+        print('Done!')
+        f.close()
+
 def edit(args: dict):
     # {0} {1} [-v | --verbose] [-f | --force]
     print(args)
