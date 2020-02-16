@@ -12,7 +12,7 @@ config_template = {
     'list-hyphons': True
 }
 
-hook_template = r'''#!/usr/bin/env python3
+prepare_commit_msg_hook_template = r'''#!/usr/bin/env python3
 import sys
 import os
 from subprocess import check_output
@@ -46,14 +46,27 @@ if commit_type != 'message':
                     f.write("\n\n%s %s" % (smommit_content, content))
                 smommit.close()
             f.close()
-            # Delete smommit file for that branch
-            os.remove(smommit_branch)
         else:
             print('No smommit for the current branch. Use "smommit add" while on this branch to a small commit.')
     else:
         print('No .smommit found. If you are not using smommit then consider deleting ".git/hooks/prepare-commit-msg"')
 else:
     print('Commit type is equal to "message". Aborting smommit insertion...')
+'''
+
+post_commit_hook_template = r'''#!/usr/bin/env python3
+import os
+from subprocess import check_output
+# Figure out which branch we're on
+branch = check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip().decode('utf-8')
+
+smommit_dir = os.path.join(os.getcwd(), '.smommit')
+if os.path.exists(smommit_dir):
+    branch_dir = os.path.join(smommit_dir, branch)
+    smommit_branch = os.path.join(branch_dir, branch + '.txt')
+    if os.path.exists(branch_dir) and os.path.exists(smommit_branch) and os.path.isfile(smommit_branch):
+        # Delete smommit for this branch
+        os.remove(smommit_branch)
 '''
 
 def is_git_repo():
@@ -100,17 +113,21 @@ def format_message(config: dict, message: str) -> str:
     return final_message
 
 def remove_line_from_file(filename: str, line_delete: int, lines: list):
+    last_flag = False
+    if len(lines) == line_delete:
+        last_flag = True
     with open(filename, "w") as f:
         for line_no in range(len(lines)):
             line = lines[line_no]
             if line_no != line_delete - 1:
+                if last_flag and line_no == len(lines) - 2:
+                    line = line.strip('\n')
                 f.write(line)
     f.close()
 
-def initialiseSmommit(verbose: bool) -> dict:
-    if verbose:
+def initialiseSmommit(v: bool) -> dict:
+    if v:
         print("Initialising smommit..")
-    v = verbose
     # Check if inside a git repo
     if is_git_repo():
         # Check if .gitignore contains .smommit
@@ -134,21 +151,45 @@ def initialiseSmommit(verbose: bool) -> dict:
             if v:
                 print('prepare-commit-msg not found in ".git/hooks". Creating...')
             with open(commit_msg_hook, 'w+') as hook:
-                hook.write(hook_template)
+                hook.write(prepare_commit_msg_hook_template)
             st = stat(commit_msg_hook)
             chmod(commit_msg_hook, st.st_mode | S_IEXEC)
             hook.close()
         else:
             # Check if prepare-commit-msg matches the template
             with open(commit_msg_hook, 'rb+') as hook:
-                if not file_compare.check_if_equal(hook.read(), bytearray(hook_template, 'utf-8')):
+                if not file_compare.check_if_equal(hook.read(), bytearray(prepare_commit_msg_hook_template, 'utf-8')):
                     if v:
                         print('prepare-commit-msg hook in ".git/hooks" does not match the template. Recreating...')
                     hook.seek(0)
-                    hook.write(bytearray(hook_template, 'utf-8'))
+                    hook.write(bytearray(prepare_commit_msg_hook_template, 'utf-8'))
                     hook.truncate()
             st = stat(commit_msg_hook)
             chmod(commit_msg_hook, st.st_mode | S_IEXEC)
+            hook.close()
+        
+        # Check for post-commit in .git/hooks
+        post_commit_hook = path.join(get_git_root(), '.git', 'hooks', 'post-commit')
+        if not path.exists(commit_msg_hook) or not path.isfile(commit_msg_hook):
+            # Create prepare-commit-msg
+            if v:
+                print('post-commit hook not found in ".git/hooks". Creating...')
+            with open(post_commit_hook, 'w+') as hook:
+                hook.write(post_commit_hook_template)
+            st = stat(post_commit_hook)
+            chmod(post_commit_hook, st.st_mode | S_IEXEC)
+            hook.close()
+        else:
+            # Check if prepare-commit-msg matches the template
+            with open(post_commit_hook, 'rb+') as hook:
+                if not file_compare.check_if_equal(hook.read(), bytearray(post_commit_hook_template, 'utf-8')):
+                    if v:
+                        print('post-commit hook in ".git/hooks" does not match the template. Recreating...')
+                    hook.seek(0)
+                    hook.write(bytearray(post_commit_hook_template, 'utf-8'))
+                    hook.truncate()
+            st = stat(post_commit_hook)
+            chmod(post_commit_hook, st.st_mode | S_IEXEC)
             hook.close()
 
         # Check if root git directory has a .smommit folder

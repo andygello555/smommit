@@ -32,8 +32,6 @@ if commit_type != 'message':
                     f.write("\n\n%s %s" % (smommit_content, content))
                 smommit.close()
             f.close()
-            # Delete smommit file for that branch
-            os.remove(smommit_branch)
         else:
             print('No smommit for the current branch. Use "smommit add" while on this branch to a small commit.')
     else:

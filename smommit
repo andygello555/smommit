@@ -4,6 +4,7 @@
 Usage:
     {0} {1} [-v | --verbose] [(-m <message>)]
     {0} {1} [-v | --verbose] [(<line> [-f | --force])]
+    {0} {1} [-v | --verbose]
     {0} {1} [-v | --verbose] [-f | --force]
     {0} {1} [-v | --verbose]
     {0} -h | --help | --version
@@ -28,6 +29,8 @@ commands = {
     "add": command_handler.add,
     # Remove a message line from the mini commit text
     "rm": command_handler.remove,
+    # Refresh command to initialise smommit file structure
+    "refresh": command_handler.refresh,
     # Edit the entire smommit inside the default editor
     "edit": command_handler.edit,
     # Configures options for the smommit of a particular branch
@@ -40,8 +43,9 @@ args_commands = {
     '--message': 0, 
     '<message>': None, 
     'rm': False, 
-    '<line>': None, 
-    '--force': 0, 
+    '<line>': None,
+    '--force': 0,
+    'refresh': False,
     'edit': False, 
     'config': False, 
     '--help': 0, 

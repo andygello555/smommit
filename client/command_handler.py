@@ -2,7 +2,6 @@ from client import cli_utils
 from client.file_compare import check_if_equal
 import os
 import time
-import datetime
 from client.small_commit import initialiseSmommit, format_message, remove_line_from_file
 
 def check_bool_option(args: dict, option: str) -> bool:
@@ -157,41 +156,54 @@ def remove(args: dict):
         branch_smommit = paths['branch_smommit']
         with open(branch_smommit, "r") as f:
             lines = f.readlines()
-            if args_norm['force']:
-                if args_norm['line'] <= len(lines) and args_norm['line'] - 1 >= 0:
-                    remove_line_from_file(branch_smommit, args_norm['line'], lines)
-                else:
-                    print('Line number is out of range. Aborting...')
-                    return
-            else:
-                if args_norm['line'] is not None:
+            if len(lines) > 0:
+                if args_norm['force']:
                     if args_norm['line'] <= len(lines) and args_norm['line'] - 1 >= 0:
-                        if cli_utils.ask_for('Are you sure you want to delete "' + lines[args_norm['line'] - 1].strip('\n'), ['y', 'n']):
-                            remove_line_from_file(branch_smommit, args_norm['line'], lines)
-                        else:
-                            print('Aborting...')
-                            return
+                        remove_line_from_file(branch_smommit, args_norm['line'], lines)
                     else:
                         print('Line number is out of range. Aborting...')
                         return
                 else:
-                    # Pick which line to delete
-                    print(paths['branch_name'] + ' smommit contains:')
-                    for line_no in range(len(lines)):
-                        print(str(line_no + 1) + ': ' + lines[line_no].strip('\n'))
-                    while True:
-                        try:
-                            line_no = int(input(('Which line do you want to delete?: ')))
-                            if line_no > len(lines) or line_no - 1 < 0:
-                                print('List number is out of range. Try again.')
+                    if args_norm['line'] is not None:
+                        if args_norm['line'] <= len(lines) and args_norm['line'] - 1 >= 0:
+                            if cli_utils.ask_for('Are you sure you want to delete "' + lines[args_norm['line'] - 1].strip('\n'), ['y', 'n']):
+                                remove_line_from_file(branch_smommit, args_norm['line'], lines)
                             else:
-                                if cli_utils.ask_for('Are you sure?', ['y', 'n']):
-                                    break
-                        except ValueError:
-                            print('Line number is not a integer. Try again.')
-                    remove_line_from_file(branch_smommit, line_no, lines)
+                                print('Aborting...')
+                                return
+                        else:
+                            print('Line number is out of range. Aborting...')
+                            return
+                    else:
+                        # Pick which line to delete
+                        print(paths['branch_name'] + ' smommit contains:')
+                        for line_no in range(len(lines)):
+                            print(str(line_no + 1) + ': ' + lines[line_no].strip('\n'))
+                        while True:
+                            try:
+                                line_no = int(input(('Which line do you want to delete?: ')))
+                                if line_no > len(lines) or line_no - 1 < 0:
+                                    print('List number is out of range. Try again.')
+                                else:
+                                    if cli_utils.ask_for('Are you sure?', ['y', 'n']):
+                                        break
+                            except ValueError:
+                                print('Line number is not a integer. Try again.')
+                        remove_line_from_file(branch_smommit, line_no, lines)
+            else:
+                print(paths['branch_name'] + ' smommit doesn\'t contain any lines')
         print('Done!')
         f.close()
+
+def refresh(args: dict):
+    # {0} {1} [-v | --verbose]
+    # Check if theres verbose
+    v = check_bool_option(args, "--verbose")
+
+    # Initialise smommit
+    paths = initialiseSmommit(v)
+    if paths is not None:
+        print('Done!')
 
 def edit(args: dict):
     # {0} {1} [-v | --verbose] [-f | --force]
