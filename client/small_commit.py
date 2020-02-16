@@ -12,9 +12,7 @@ config_template = {
     'list-hyphons': True
 }
 
-hook_template = r'''
-#!/usr/bin/env python3
-""" Template from this https://www.atlassian.com/git/tutorials/git-hooks """
+hook_template = r'''#!/usr/bin/env python3
 import sys
 import os
 from subprocess import check_output
@@ -28,14 +26,11 @@ if len(sys.argv) > 3:
     commit_hash = sys.argv[3]
 else:
     commit_hash = ''
-print("prepare-commit-msg: File: %s\nType: %s\nHash: %s" % (commit_msg_filepath, commit_type, commit_hash))
 # Figure out which branch we're on
-branch = check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
-print("prepare-commit-msg: On branch '%s'" % branch)
+branch = check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip().decode('utf-8')
 
 if commit_type != 'message':
-    smommit_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd()))), '.smommit')
-    print(".smommit dir:", smommit_dir)
+    smommit_dir = os.path.join(os.getcwd(), '.smommit')
     if os.path.exists(smommit_dir):
         branch_dir = os.path.join(smommit_dir, branch)
         smommit_branch = os.path.join(branch_dir, branch + '.txt')
@@ -51,6 +46,8 @@ if commit_type != 'message':
                     f.write("\n\n%s %s" % (smommit_content, content))
                 smommit.close()
             f.close()
+            # Delete smommit file for that branch
+            os.remove(smommit_branch)
         else:
             print('No smommit for the current branch. Use "smommit add" while on this branch to a small commit.')
     else:
@@ -147,7 +144,9 @@ def initialiseSmommit(verbose: bool) -> dict:
                 if not file_compare.check_if_equal(hook.read(), bytearray(hook_template, 'utf-8')):
                     if v:
                         print('prepare-commit-msg hook in ".git/hooks" does not match the template. Recreating...')
+                    hook.seek(0)
                     hook.write(bytearray(hook_template, 'utf-8'))
+                    hook.truncate()
             st = stat(commit_msg_hook)
             chmod(commit_msg_hook, st.st_mode | S_IEXEC)
             hook.close()
