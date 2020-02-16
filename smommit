@@ -5,6 +5,7 @@ Usage:
     {0} {1} [-v | --verbose] [(-m <message>)]
     {0} {1} [-v | --verbose] [(<line> [-f | --force])]
     {0} {1} [-v | --verbose]
+    {0} {1} [-v | --verbose]
     {0} {1} [-v | --verbose] [-f | --force]
     {0} {1} [-v | --verbose]
     {0} -h | --help | --version
@@ -31,6 +32,8 @@ commands = {
     "rm": command_handler.remove,
     # Refresh command to initialise smommit file structure
     "refresh": command_handler.refresh,
+    # View all lines of the smommit and config file for the current branch
+    "view": command_handler.view,
     # Edit the entire smommit inside the default editor
     "edit": command_handler.edit,
     # Configures options for the smommit of a particular branch
@@ -46,6 +49,7 @@ args_commands = {
     '<line>': None,
     '--force': 0,
     'refresh': False,
+    'view': False,
     'edit': False, 
     'config': False, 
     '--help': 0, 

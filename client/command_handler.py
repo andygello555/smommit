@@ -205,6 +205,28 @@ def refresh(args: dict):
     if paths is not None:
         print('Done!')
 
+def view(args: dict):
+    # {0} {1} [-v | --verbose]
+    # Check if theres verbose
+    v = check_bool_option(args, "--verbose")
+
+    # Initialise smommit
+    paths = initialiseSmommit(v)
+    if paths is not None:
+        branch_smommit = paths['branch_smommit']
+        with open(branch_smommit, "r") as f:
+            lines = f.readlines()
+            if len(lines) > 0:
+                print(paths['branch_name'] + ' smommit contains:')
+                for line in lines:
+                    print(line)
+                print('\n' + paths['branch_name'] + ' config details:')
+                cli_utils.print_dict(paths['config'])
+            else:
+                print(paths['branch_name'] + ' smommit doesn\'t contain any lines')
+        print('\nDone!')
+
+
 def edit(args: dict):
     # {0} {1} [-v | --verbose] [-f | --force]
     print(args)
