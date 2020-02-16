@@ -2,7 +2,7 @@ from client import cli_utils
 from client.file_compare import check_if_equal
 import os
 import time
-from client.small_commit import initialiseSmommit, format_message, remove_line_from_file
+from client.small_commit import initialiseSmommit, format_message, remove_line_from_file, get_smommit_folder
 
 def check_bool_option(args: dict, option: str) -> bool:
     """ Check if theres a boolean option with the given name
@@ -206,9 +206,11 @@ def refresh(args: dict):
         print('Done!')
 
 def view(args: dict):
-    # {0} {1} [-v | --verbose]
+    # {0} {1} [-v | --verbose] [-c | --config]
     # Check if theres verbose
     v = check_bool_option(args, "--verbose")
+    # Check if there's config
+    c = check_bool_option(args, '--config')
 
     # Initialise smommit
     paths = initialiseSmommit(v)
@@ -219,18 +221,25 @@ def view(args: dict):
             if len(lines) > 0:
                 print(paths['branch_name'] + ' smommit contains:')
                 for line in lines:
-                    print(line)
-                print('\n' + paths['branch_name'] + ' config details:')
-                cli_utils.print_dict(paths['config'])
+                    print(line.strip('\n'))
+                if c:
+                    print('\n' + paths['branch_name'] + ' config details:')
+                    cli_utils.print_dict(paths['config'])
             else:
                 print(paths['branch_name'] + ' smommit doesn\'t contain any lines')
         print('\nDone!')
 
 
 def edit(args: dict):
-    # {0} {1} [-v | --verbose] [-f | --force]
-    print(args)
+    # {0} {1} [-v | --verbose] [-c | --config]
+    # Check if theres verbose
+    v = check_bool_option(args, "--verbose")
+    # Check if there's config
+    c = check_bool_option(args, '--config')
 
-def config(args: dict):
-    # {0} {1} [-v | --verbose]
-    print(args)
+    # Initialise smommit
+    paths = initialiseSmommit(v)
+    if paths is not None:
+        file_to_open = paths['branch_smommit'] if not c else os.path.join(get_smommit_folder(), paths['branch_name'], 'config.json')
+        cli_utils.open_default_editor(file_to_open).wait()
+    print('Done!')

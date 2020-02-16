@@ -5,12 +5,12 @@ Usage:
     {0} {1} [-v | --verbose] [(-m <message>)]
     {0} {1} [-v | --verbose] [(<line> [-f | --force])]
     {0} {1} [-v | --verbose]
-    {0} {1} [-v | --verbose]
-    {0} {1} [-v | --verbose] [-f | --force]
-    {0} {1} [-v | --verbose]
+    {0} {1} [-v | --verbose] [-c | --config]
+    {0} {1} [-v | --verbose] [-c | --config]
     {0} -h | --help | --version
 Options:
     -m --message  The smommit message (if not present then default editor will be opened)
+    -c --config   Specifies the smommit config file
     -f --force    Force/Don't ask for permission
     -v --verbose  Verbose
     -h --help     Shows help
@@ -34,25 +34,23 @@ commands = {
     "refresh": command_handler.refresh,
     # View all lines of the smommit and config file for the current branch
     "view": command_handler.view,
-    # Edit the entire smommit inside the default editor
-    "edit": command_handler.edit,
-    # Configures options for the smommit of a particular branch
-    "config": command_handler.config
+    # Edit the entire smommit inside the default editor (just acts as an abstraction so that the user doesn't have to go to file)
+    "edit": command_handler.edit
 }
 
 args_commands = {
-    'add': False, 
-    '--verbose': 0, 
-    '--message': 0, 
-    '<message>': None, 
-    'rm': False, 
+    'add': False,
+    '--verbose': 0,
+    '--message': 0,
+    '<message>': None,
+    'rm': False,
     '<line>': None,
     '--force': 0,
     'refresh': False,
     'view': False,
-    'edit': False, 
-    'config': False, 
-    '--help': 0, 
+    '--config': 0,
+    'edit': False,
+    '--help': 0,
     '--version': False
 }
 
