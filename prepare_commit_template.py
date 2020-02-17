@@ -26,7 +26,9 @@ if commit_type != 'message':
             with open(commit_msg_filepath, 'r+') as f:
                 with open(smommit_branch, 'r') as smommit:
                     content = f.read()
-                    smommit_content = smommit.read()
+                    smommit_lines = smommit.readlines()
+                    smommit_lines[-1] = smommit_lines[-1].strip('\n')
+                    smommit_content = ''.join(smommit_lines)
                     f.seek(0, 0)
                     # Leave two newlines for title
                     f.write("\n\n%s %s" % (smommit_content, content))

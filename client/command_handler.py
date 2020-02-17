@@ -112,13 +112,11 @@ def add(args: dict):
         branch_smommit = paths['branch_smommit']
         branch_smommit_file = open(branch_smommit, "a+")
         # Add newline if the message is not the first message in smommit
-        message = ''
-        if os.stat(branch_smommit).st_size != 0:
-            message += "\n"
-        message += format_message(paths['config'], str(args_norm['message']))
+        message = format_message(paths['config'], str(args_norm['message']))
+        message += '\n'
         branch_smommit_file.write(message)
         branch_smommit_file.close()
-        print('Added "' + message.replace('\n', '') + '" to ' + paths['branch_name'] + ' smommit')
+        print('Added "' + message.strip('\n') + '" to ' + paths['branch_name'] + ' smommit')
 
 def remove(args: dict):
     # {0} {1} [-v | --verbose] [(<line> [-f | --force])]

@@ -41,7 +41,9 @@ if commit_type != 'message':
             with open(commit_msg_filepath, 'r+') as f:
                 with open(smommit_branch, 'r') as smommit:
                     content = f.read()
-                    smommit_content = smommit.read()
+                    smommit_lines = smommit.readlines()
+                    smommit_lines[-1] = smommit_lines[-1].strip('\n')
+                    smommit_content = ''.join(smommit_lines)
                     f.seek(0, 0)
                     # Leave two newlines for title
                     f.write("\n\n%s %s" % (smommit_content, content))
@@ -110,15 +112,10 @@ def format_message(config: dict, message: str) -> str:
     return final_message
 
 def remove_line_from_file(filename: str, line_delete: int, lines: list):
-    last_flag = False
-    if len(lines) == line_delete:
-        last_flag = True
     with open(filename, "w") as f:
         for line_no in range(len(lines)):
             line = lines[line_no]
             if line_no != line_delete - 1:
-                if last_flag and line_no == len(lines) - 2:
-                    line = line.strip('\n')
                 f.write(line)
     f.close()
 
