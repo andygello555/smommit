@@ -35,7 +35,9 @@ Options:
 ```
 
 #### Install:
-Currently there is no way of installing other than cloning this github and placing `smommit` on your path. I have only tested the tool on Ubuntu 18.04 but it should work on all Unix based systems.
+Using pip:
+    `pip3 install smommit`
+...Or clone the repository and add `smommit-runner.py` to your path. (You could also rename it to just `smommit` if it suits you)
 
 #### Requirments:
 - docopt

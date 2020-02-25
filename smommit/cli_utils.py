@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 from os import getcwd, path
 from urllib.parse import urlparse
-import requests
 import platform
 import subprocess
 
@@ -56,27 +56,6 @@ def ask_for(question: str, answers: list):
         print("Don't understand that input")
         answer = str(input(question + " " + str(answers))).lower()
     return answer if len(answers) > 2 else answers[0] == answer
-
-def check_if_404(url: str) -> bool:
-    """ Checks if URL returns a 404
-        - url: URL to check
-        - returns: true if 404 found, false otherwise
-    """
-    check = requests.get(url)
-    return check.status_code == 404
-
-def find_hostname(url: str) -> str:
-    """ Finds the hostname of the given URL and splits it on the first dot (used to form filename)
-    """
-    if not check_if_404(url):
-        urlname = urlparse(url)
-        urlhost = urlname.hostname
-        # Strips everything after the first dot
-        a = urlname.hostname.split(".")[0]
-        pos = urlhost.find(a)
-        return urlhost[:pos + len(a)]
-    else:
-        return None
 
 def print_dict(args: dict):
     for arg in args.keys():

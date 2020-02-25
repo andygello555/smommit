@@ -1,8 +1,9 @@
-from client import cli_utils
-from client.file_compare import check_if_equal
+# -*- coding: utf-8 -*-
+from smommit import cli_utils
+from smommit.file_compare import check_if_equal
+from smommit.small_commit import initialiseSmommit, format_message, remove_line_from_file, get_smommit_folder
 import os
 import time
-from client.small_commit import initialiseSmommit, format_message, remove_line_from_file, get_smommit_folder
 
 def check_bool_option(args: dict, option: str) -> bool:
     """ Check if theres a boolean option with the given name

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """ Smommit: the git small commit system
 
 Usage:
@@ -20,9 +20,9 @@ Options:
 """
 
 from docopt import docopt
-from client import command_handler
+from smommit import command_handler
 
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 
 main_exec = "smommit"
 commands = {
@@ -103,7 +103,8 @@ def find_difference(dict1: dict, dict2: dict) -> dict:
     """
     return {key: dict2[key] for key in dict1.keys() if dict1[key] != dict2[key]}
 
-if __name__ == '__main__':
+""" Function called when smommit command is run """
+def main():
     arguments = docopt(init_docs(__doc__), version=__version__)
     arguments = remove_options(arguments)
     # print(arguments)

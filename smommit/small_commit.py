@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """ "Backend" stuff for smommit cli tool
 """
-from client import cli_utils, file_compare
+from smommit import cli_utils, file_compare
 from os import path, getcwd, makedirs, stat, chmod, devnull
 import json
 import datetime
